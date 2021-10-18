@@ -60,13 +60,14 @@ def binanceAlert():
 
     if binancePreviousCatalogs == None:
         binancePreviousCatalogs = catalogs
-    elif binancePreviousCatalogs != catalogs:
-        print(binancePreviousCatalogs)
-        print(catalogs)
-        for i in range(len(catalogs)):
-            if catalogs[i]['articles'][0] not in binancePreviousCatalogs[i]['articles']:
-                newArticles.append({"catalogName": catalogs[i]["catalogName"], "title": catalogs[i]['articles'][0]['title']})
-        binancePreviousCatalogs = catalogs
+
+    print(binancePreviousCatalogs)
+    print(catalogs)
+    for i in range(len(catalogs)):
+        if catalogs[i]['articles'][0] not in binancePreviousCatalogs[i]['articles']:
+            newArticles.append({"catalogName": catalogs[i]["catalogName"], "title": catalogs[i]['articles'][0]['title']})
+            binancePreviousCatalogs = catalogs
+            break
     return newArticles
 
 
@@ -81,8 +82,8 @@ if __name__ == "__main__":
                 print(text)
                 sendmsg(text)
         except Exception as err:
-                text += err
-                print(text)
-                sendmsg(text)
+            text += str(err)
+            print(text)
+            sendmsg(text)
 
         time.sleep(1)
