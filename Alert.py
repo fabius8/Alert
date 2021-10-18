@@ -4,11 +4,17 @@ import time
 import requests
 import json
 from datetime import datetime, timezone, timedelta
+import sys
+
+if len(sys.argv) == 2:
+    site = sys.argv[1]
+else:
+    site = "binancezh.top"
 
 tz = timezone(timedelta(hours=+8))
 
 config = json.load(open('config.json'))
-binance_announcement_site = "https://www.binancezh.top/zh-CN/support/announcement"
+binance_announcement_site = "https://www." + site + "/zh-CN/support/announcement"
 binancePreviousCatalogs = None
 errCount = 0
 
@@ -65,7 +71,7 @@ def binanceAlert():
 
 
 if __name__ == "__main__":
-    print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"), "Start...")
+    print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"), site, "Start...")
     while True:
         text = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S") + "\n"
         try:
