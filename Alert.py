@@ -60,9 +60,7 @@ def binanceAlert():
 
     if binancePreviousCatalogs == None:
         binancePreviousCatalogs = catalogs
-
-    print(binancePreviousCatalogs)
-    print(catalogs)
+        
     for i in range(len(catalogs)):
         if catalogs[i]['articles'][0] not in binancePreviousCatalogs[i]['articles']:
             newArticles.append({"catalogName": catalogs[i]["catalogName"], "title": catalogs[i]['articles'][0]['title']})
