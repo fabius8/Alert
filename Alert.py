@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 tz = timezone(timedelta(hours=+8))
 
 config = json.load(open('config.json'))
-binance_announcement_site = "https://www.binance.com/zh-CN/support/announcement"
+binance_announcement_site = "https://www.binancezh.top/zh-CN/support/announcement"
 binancePreviousCatalogs = None
 errCount = 0
 
@@ -49,11 +49,16 @@ def binanceAlert():
     data = soup.find(id="__APP_DATA")
     catalogs = json.loads(data.string)["routeProps"]["42b1"]["catalogs"]
 
+    for i in range(len(catalogs)):
+        catalogs[i]["icon"] = ""
+
     if binancePreviousCatalogs == None:
         binancePreviousCatalogs = catalogs
     elif binancePreviousCatalogs != catalogs:
+        print(binancePreviousCatalogs)
+        print(catalogs)
         for i in range(len(catalogs)):
-            if binancePreviousCatalogs[i]['articles'][0] != catalogs[i]['articles'][0]:
+            if catalogs[i]['articles'][0] not in binancePreviousCatalogs[i]['articles']:
                 newArticles.append({"catalogName": catalogs[i]["catalogName"], "title": catalogs[i]['articles'][0]['title']})
         binancePreviousCatalogs = catalogs
     return newArticles
