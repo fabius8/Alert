@@ -3,6 +3,7 @@ import json
 import time
 import requests
 import re
+import datetime
 
 config = json.load(open('config.json'))
 client = TelegramClient('session_name', config["api_id"], config["api_hash"])
@@ -38,6 +39,7 @@ async def handler(event):
     except Exception as e:
         print(e)
         pass
+    publishTime = ""
     for i in mm:
         if "发布时间" in i or "publish time" in i:
             publishTime = i
@@ -45,7 +47,9 @@ async def handler(event):
             continue
         else:
             text += i + "\n"
-    text += publishTime + "\n"
+    if publish != "":
+        text += publishTime + "\n"
+    print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
     print(text)
 
     try:
@@ -53,7 +57,7 @@ async def handler(event):
     except Exception as e:
         print(e)
         pass
-        
+
     try:
         sendmsg(text)
     except Exception as e:
