@@ -3,19 +3,22 @@ import json
 import time
 import requests
 import re
-import datetime
+from datetime import datetime, timezone, timedelta
+import httpx
 
+tz = timezone(timedelta(hours=+8))
 config = json.load(open('config.json'))
 client = TelegramClient('session_name', config["api_id"], config["api_hash"])
 client.start()
 
-def sendmsg(text):
+async def sendmsg(text):
     params = {
         "corpid": config['corpid'],
         "corpsecret": config['corpsecret']
     }
     url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
-    r = requests.get(url, params = params)
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url, params = params)
     access_token = r.json()["access_token"]
     url = "https://qyapi.weixin.qq.com/cgi-bin/message/send"
     params = {
@@ -29,7 +32,8 @@ def sendmsg(text):
             "content" : text
         }
     }
-    r = requests.post(url, params = params, json = data)
+    async with httpx.AsyncClient() as client:
+        r = await client.post(url, params = params, json = data)
 
 @client.on(events.NewMessage(chats=1388754506))
 async def handler(event):
@@ -47,19 +51,21 @@ async def handler(event):
             continue
         else:
             text += i + "\n"
-    if publish != "":
+    if publishTime != "":
         text += publishTime + "\n"
     print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
     print(text)
 
     try:
-        requests.post("http://localhost:5000", json={"data": text})
+        async with httpx.AsyncClient() as client:
+            await client.post("http://localhost:5000", json={"data": text})
+        #requests.post("http://localhost:5000", json={"data": text})
     except Exception as e:
         print(e)
         pass
 
     try:
-        sendmsg(text)
+        await sendmsg(text)
     except Exception as e:
         print(e)
         pass 
