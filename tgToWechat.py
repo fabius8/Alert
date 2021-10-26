@@ -5,35 +5,48 @@ import requests
 import re
 from datetime import datetime, timezone, timedelta
 import httpx
+import asyncio
 
 tz = timezone(timedelta(hours=+8))
 config = json.load(open('config.json'))
 client = TelegramClient('session_name', config["api_id"], config["api_hash"])
 client.start()
 
-async def sendmsg(text):
-    params = {
-        "corpid": config['corpid'],
-        "corpsecret": config['corpsecret']
-    }
-    url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url, params = params)
-    access_token = r.json()["access_token"]
-    url = "https://qyapi.weixin.qq.com/cgi-bin/message/send"
-    params = {
-        "access_token": access_token
-    }
-    data = {
-        "touser": "@all",
-        "msgtype" : "text",
-        "agentid" : 1000002,
-        "text" : {
-            "content" : text
+async def sendToWechat(text):
+    try:
+        params = {
+            "corpid": config['corpid'],
+            "corpsecret": config['corpsecret']
         }
-    }
-    async with httpx.AsyncClient() as client:
-        r = await client.post(url, params = params, json = data)
+        url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+        async with httpx.AsyncClient() as client:
+            r = await client.get(url, params = params)
+        access_token = r.json()["access_token"]
+        url = "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+        params = {
+            "access_token": access_token
+        }
+        data = {
+            "touser": "@all",
+            "msgtype" : "text",
+            "agentid" : 1000002,
+            "text" : {
+                "content" : text
+            }
+        }
+        async with httpx.AsyncClient() as client:
+            r = await client.post(url, params = params, json = data)
+    except Exception as e:
+        print(e)
+        pass 
+
+async def sendToTrade(text):
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post("http://localhost:5000", json={"data": text})
+    except Exception as e:
+        print(e)
+        pass
 
 @client.on(events.NewMessage(chats=1388754506))
 async def handler(event):
@@ -56,18 +69,10 @@ async def handler(event):
     print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
     print(text)
 
-    try:
-        async with httpx.AsyncClient() as client:
-            await client.post("http://localhost:5000", json={"data": text})
-        #requests.post("http://localhost:5000", json={"data": text})
-    except Exception as e:
-        print(e)
-        pass
+    task1 = asyncio.create_task(sendToTrade(text))
+    task2 = asyncio.create_task(sendToWechat(text))
+    await task1
+    await task2
 
-    try:
-        await sendmsg(text)
-    except Exception as e:
-        print(e)
-        pass 
 
 client.run_until_disconnected()
