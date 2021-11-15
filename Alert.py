@@ -9,12 +9,10 @@ import sys
 if len(sys.argv) == 2:
     site = sys.argv[1]
 else:
-    site = "binancezh.top"
+    site = "binance.com"
 
 tz = timezone(timedelta(hours=+8))
-
 config = json.load(open('config.json'))
-binance_announcement_site = "https://www." + site + "/zh-CN/support/announcement"
 binancePreviousCatalogs = None
 errCount = 0
 
@@ -46,7 +44,16 @@ def binanceAlert():
     newArticles = []
 
     try:
-        r = requests.get(binance_announcement_site, timeout=5)
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+        params = {
+            "random": str(int(time.time()))
+        }
+        binance_announcement_site = "https://www." + site + "/en/support/announcement"
+        r = requests.get(binance_announcement_site, timeout=5, params=params, headers=headers)
+        #print(r.request.headers)
     except requests.exceptions.RequestException as e:
         print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"), e, errCount)
         errCount += 1
@@ -54,6 +61,11 @@ def binanceAlert():
     soup = BeautifulSoup(r.text, "html.parser")
     data = soup.find(id="__APP_DATA")
     catalogs = json.loads(data.string)["routeProps"]["42b1"]["catalogs"]
+    # test
+    # print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
+    # for i in range(len(catalogs)):
+    #     print(catalogs[i]['articles'][0])
+    # print("\n")
 
     for i in range(len(catalogs)):
         catalogs[i]["icon"] = ""
@@ -72,16 +84,22 @@ def binanceAlert():
 if __name__ == "__main__":
     print(datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"), site, "Start...")
     while True:
-        text = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S") + "\n"
         try:
             alert = binanceAlert()
             for i in alert:
-                text += i['catalogName'] + ":" + i['title'] + "\n"
+                text = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S") + "\n"
+                text += i['catalogName'] + ":" + "\n" + i['title'] + "\n"
                 print(text)
+                try:
+                    requests.post("http://localhost:5000", json={"data": i['title']})
+                except Exception as err:
+                    text += str(err)
+                    pass
                 sendmsg(text)
+                break
         except Exception as err:
             text += str(err)
             print(text)
-            sendmsg(text)
+            #sendmsg(text)
 
-        time.sleep(1)
+        time.sleep(5)
