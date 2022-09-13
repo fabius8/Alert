@@ -12,11 +12,11 @@ config = json.load(open('config.json'))
 client = TelegramClient('session_name', config["api_id"], config["api_hash"])
 client.start()
 
-async def sendToWechat(text):
+async def sendToWechat(text, corpid, corpsecret, agentid):
     try:
         params = {
-            "corpid": config['corpid'],
-            "corpsecret": config['corpsecret']
+            "corpid": corpid,
+            "corpsecret": corpsecret
         }
         url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
         async with httpx.AsyncClient() as client:
@@ -29,7 +29,7 @@ async def sendToWechat(text):
         data = {
             "touser": "@all",
             "msgtype" : "text",
-            "agentid" : 1000002,
+            "agentid" : agentid,
             "text" : {
                 "content" : text
             }
@@ -38,7 +38,8 @@ async def sendToWechat(text):
             r = await client.post(url, params = params, json = data)
     except Exception as e:
         print(e)
-        pass 
+        pass
+
 
 async def sendToTrade(text):
     try:
@@ -52,10 +53,15 @@ async def sendToTrade(text):
 async def handler(event):
     text = ""
     try:
-        mm = event.message.message.split("\n")
+        mm = event.message.message
+        if "twitter" in mm:
+            print("skip twitter")
+            return
+        mm = mm.split("\n")
     except Exception as e:
         print(e)
         pass
+
     publishTime = ""
     for i in mm:
         if "发布时间" in i or "publish time" in i:
@@ -70,7 +76,26 @@ async def handler(event):
     print(text)
 
     task1 = asyncio.create_task(sendToTrade(text))
-    task2 = asyncio.create_task(sendToWechat(text))
+
+    if "币安\n" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["binancealert"]["corpid"], config["binancealert"]["corpsecret"], config["binancealert"]["agentid"]))
+    elif "Gate.io" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["gatealert"]["corpid"], config["gatealert"]["corpsecret"], config["gatealert"]["agentid"]))
+    elif "mexc.com" in text or "MXC.io" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["mexcalert"]["corpid"], config["mexcalert"]["corpsecret"], config["mexcalert"]["agentid"]))
+    elif "OKEX.COM" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["okexalert"]["corpid"], config["okexalert"]["corpsecret"], config["okexalert"]["agentid"]))
+    elif "火币" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["huobialert"]["corpid"], config["huobialert"]["corpsecret"], config["huobialert"]["agentid"]))
+    elif "coinbase" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["coinbasealert"]["corpid"], config["coinbasealert"]["corpsecret"], config["coinbasealert"]["agentid"]))
+    elif "ftx\n" in text or "FTX\n" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["ftxalert"]["corpid"], config["ftxalert"]["corpsecret"], config["ftxalert"]["agentid"]))
+    elif "kucoin" in text:
+        task2 = asyncio.create_task(sendToWechat(text, config["kucoinalert"]["corpid"], config["kucoinalert"]["corpsecret"], config["kucoinalert"]["agentid"]))
+    else:
+        task2 = asyncio.create_task(sendToWechat(text, config["allalert"]["corpid"], config["allalert"]["corpsecret"], config["allalert"]["agentid"]))
+
     await task1
     await task2
 
