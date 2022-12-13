@@ -83,11 +83,11 @@ async def handler(event):
         task2 = asyncio.create_task(sendToWechat(text, config["gatealert"]["corpid"], config["gatealert"]["corpsecret"], config["gatealert"]["agentid"]))
     elif "mexc.com" in text or "MXC.io" in text:
         task2 = asyncio.create_task(sendToWechat(text, config["mexcalert"]["corpid"], config["mexcalert"]["corpsecret"], config["mexcalert"]["agentid"]))
-    elif "OKEX.COM" in text:
+    elif "OKEX.COM" in text or "OKEX" in text or "OKX" in text:
         task2 = asyncio.create_task(sendToWechat(text, config["okexalert"]["corpid"], config["okexalert"]["corpsecret"], config["okexalert"]["agentid"]))
     elif "火币" in text:
         task2 = asyncio.create_task(sendToWechat(text, config["huobialert"]["corpid"], config["huobialert"]["corpsecret"], config["huobialert"]["agentid"]))
-    elif "coinbase" in text:
+    elif "coinbase" in text or "CoinBase" in text or "coinBase" in text or "Coinbase" in text or "COINBASE" in text:
         task2 = asyncio.create_task(sendToWechat(text, config["coinbasealert"]["corpid"], config["coinbasealert"]["corpsecret"], config["coinbasealert"]["agentid"]))
     elif "ftx\n" in text or "FTX\n" in text:
         task2 = asyncio.create_task(sendToWechat(text, config["ftxalert"]["corpid"], config["ftxalert"]["corpsecret"], config["ftxalert"]["agentid"]))
